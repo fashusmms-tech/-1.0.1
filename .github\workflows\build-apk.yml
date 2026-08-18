@@ -1,1 +1,31 @@
+name: Build Android APK
 
+on:
+  # 手动触发: GitHub 仓库页面 → Actions → Build Android APK → Run workflow
+  workflow_dispatch: {}
+  # 推送到 main 分支时自动触发
+  push:
+    branches: [ "main", "master" ]
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 用 Buildozer 编译 APK
+        id: buildozer
+        uses: ArtemSBulgakov/buildozer-action@v1
+        with:
+          # 编译 debug 版 APK（可直接安装到手机）
+          command: buildozer android debug
+          workdir: .
+          buildozer_version: stable
+
+      - name: 上传 APK 产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: chainplate-apk
+          path: ${{ steps.buildozer.outputs.filename }}
+          if-no-files-found: error
