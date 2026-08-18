@@ -39,6 +39,7 @@ android.api = 33
 
 # (str) 固定 NDK 版本（25b 与 python-for-android 稳定版配合良好）
 android.ndk = 25b
+p4a.branch = v2024.01.21
 
 # (int) 最低支持的 Android 版本 (API 21 = Android 5.0)
 android.minapi = 21
