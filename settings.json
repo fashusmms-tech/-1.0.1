@@ -1,0 +1,87 @@
+{
+  "sheet_price": {
+    "201": 8.1,
+    "304": 15.3,
+    "carbon": 5.0
+  },
+  "chain_price": {
+    "201": {
+      "25.4": 20.0,
+      "31.75": 16.5,
+      "38.1": 22.0,
+      "50.8": 32.0,
+      "假两寸": 22.0
+    },
+    "304": {
+      "25.4": 20.0,
+      "31.75": 22.0,
+      "38.1": 32.5,
+      "50.8": 46.5,
+      "假两寸": 33.0
+    },
+    "carbon": {
+      "25.4": 9.0,
+      "31.75": 10.0,
+      "38.1": 13.0,
+      "50.8": 19.0,
+      "假两寸": 12.0
+    }
+  },
+  "chain_width": {
+    "25.4": 38.0,
+    "31.75": 41.0,
+    "38.1": 55.0,
+    "50.8": 62.0,
+    "假两寸": 55.0
+  },
+  "const": {
+    "density": 0.00793,
+    "pin_pi": 3.14,
+    "pin_coef": 0.00623,
+    "pin_fee": 0.1,
+    "flight_margin": 15.0,
+    "labor": 0.0
+  },
+  "cut": {
+    "band1": {
+      "max_t": 1.2,
+      "flat_w": 600.0,
+      "flat_fee": 0.5
+    },
+    "band2": {
+      "min_t": 1.5,
+      "max_t": 2.0,
+      "flat_w": 600.0,
+      "formula_w": 700.0,
+      "flat_fee": 0.7,
+      "formula_extra": 0.3
+    },
+    "band3": {
+      "min_t": 3.0,
+      "flat_w": 600.0,
+      "flat_fee": 1.0,
+      "formula_extra": 0.6
+    }
+  },
+  "punch": {
+    "equals_cut": true,
+    "manual_fee": 0.0
+  },
+  "weld": {
+    "max_d": 8.0,
+    "fee_small": 0.8,
+    "fee_large": 1.0
+  },
+  "punch_hole": {
+    "auto_max_t": 1.2,
+    "auto_flat_w": 500.0,
+    "auto_flat_fee": 0.5,
+    "manual_min_t": 1.5
+  },
+  "accessory": {
+    "cross_fee": 1.5,
+    "side_fee": 0.4,
+    "ball": 1.0,
+    "wheel": 3.5
+  }
+}
