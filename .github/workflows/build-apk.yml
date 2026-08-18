@@ -34,6 +34,8 @@ jobs:
           pip install buildozer==1.5.0 cython==0.29.36
 
       - name: 编译 APK（首次约 15~25 分钟）
+        env:
+          JAVA_HOME: /usr/lib/jvm/temurin-17-jdk-amd64
         run: buildozer android debug
 
       - name: 上传 APK 产物
