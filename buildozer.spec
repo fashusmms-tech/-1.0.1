@@ -32,6 +32,7 @@ fullscreen = 0
 android.archs = arm64-v8a,armeabi-v7a
 
 # (int) 编译所用的 Android SDK API 级别
+android.accept_sdk_license = True
 android.api = 33
 
 # (int) 最低支持的 Android 版本 (API 21 = Android 5.0)
