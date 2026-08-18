@@ -31,9 +31,14 @@ fullscreen = 0
 # 加上 armeabi-v7a 兼容更老的 32 位机型（APK 会稍大）。
 android.archs = arm64-v8a,armeabi-v7a
 
-# (int) 编译所用的 Android SDK API 级别
+# (bool) 自动接受 Android SDK 许可协议（无人值守编译必须开启）
 android.accept_sdk_license = True
+
+# (int) 编译所用的 Android SDK API 级别
 android.api = 33
+
+# (str) 固定 NDK 版本（25b 与 python-for-android 稳定版配合良好）
+android.ndk = 25b
 
 # (int) 最低支持的 Android 版本 (API 21 = Android 5.0)
 android.minapi = 21
@@ -41,7 +46,7 @@ android.minapi = 21
 # (bool) 是否允许系统备份应用数据
 android.allow_backup = True
 
-# (str) 应用图标（留空使用 Kivy 默认图标；可自行放一张 icon.png 并改成 %(source.dir)s/icon.png）
+# (str) 应用图标（留空使用 Kivy 默认图标）
 # icon.filename = %(source.dir)s/icon.png
 
 # (str) 启动画面背景色（白）
