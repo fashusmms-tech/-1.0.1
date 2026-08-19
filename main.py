@@ -10,6 +10,7 @@ import os
 from kivy.app import App
 from kivy.clock import Clock
 from kivy.core.window import Window
+from kivy.core.text import LabelBase
 from kivy.graphics import Color, Rectangle
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
@@ -25,6 +26,17 @@ from chainplate_calc import (DEFAULT_FORMULAS, MATERIAL_KEYS, MATERIAL_NAMES,
                              PITCHES, SAMPLE_ENV, compute, default_settings,
                              eval_expr, format_result, load_settings,
                              save_settings)
+
+# ==================== 注册中文字体 ====================
+# Kivy 默认字体(Roboto)不含中文，必须注册一个支持中文的 TTF 字体。
+# 字体文件 chinese_font.ttf 需要与 main.py 放在同一目录（buildozer 会打包进去）。
+_FONT_DIR = os.path.dirname(os.path.abspath(__file__))
+_FONT_PATH = os.path.join(_FONT_DIR, "chinese_font.ttf")
+if os.path.exists(_FONT_PATH):
+    LabelBase.register(name="Chinese", regular=_FONT_PATH)
+    _FONT_NAME = "Chinese"
+else:
+    _FONT_NAME = "Roboto"  # 回退：开发环境缺少字体文件时用默认字体
 
 # 键盘弹出时避免遮挡输入框
 try:
@@ -59,15 +71,50 @@ COLOR_TOTAL_FG = (0.75, 0.22, 0.17, 1)   # 醒目总价文字(红)
 COLOR_ERR = (0.85, 0.20, 0.20, 1)
 COLOR_NORMAL = (0.10, 0.10, 0.10, 1)
 
+# 移动端适配的尺寸常量
+_LABEL_WIDTH = 100       # 标签固定宽度(dp)
+_ROW_HEIGHT = 48         # 每行高度(dp)
+_INPUT_HEIGHT = 46       # 输入框高度(dp)
+_TITLE_HEIGHT = 44       # 标题栏高度(dp)
+_BTN_HEIGHT = 54         # 按钮行高度(dp)
+_TOTAL_BAR_HEIGHT = 72   # 总价栏高度(dp)
+_FS_LABEL = 15           # 标签字号
+_FS_INPUT = 16           # 输入框字号
+_FS_TITLE = 19           # 标题字号
+_FS_BTN_MAIN = 20        # 主按钮字号
+_FS_BTN_SUB = 15         # 副按钮字号
+_FS_TOTAL = 24           # 总价字号
+_FS_DETAIL = 14          # 明细字号
 
-def _label(text, height=44, **kw):
-    lbl = Label(text=text, size_hint_y=None, height=height, font_size=17, **kw)
+
+def _label(text, height=None, **kw):
+    """创建统一字体的标签"""
+    if height is None:
+        height = _ROW_HEIGHT
+    lbl = Label(text=text, size_hint_y=None, height=height,
+                font_name=_FONT_NAME, font_size=_FS_LABEL, **kw)
     return lbl
 
 
 def _num_input(text="", filt="float", hint=""):
+    """创建统一字体的数字输入框"""
     return TextInput(text=text, input_filter=filt, multiline=False,
-                     size_hint_y=None, height=50, hint_text=hint, font_size=19)
+                     size_hint_y=None, height=_INPUT_HEIGHT, hint_text=hint,
+                     font_name=_FONT_NAME, font_size=_FS_INPUT)
+
+
+def _btn(text, font_size=None, **kw):
+    """创建统一字体的按钮"""
+    if font_size is None:
+        font_size = _FS_BTN_SUB
+    return Button(text=text, font_name=_FONT_NAME, font_size=font_size, **kw)
+
+
+def _spinner(text, values):
+    """创建统一字体的下拉框"""
+    return Spinner(text=text, values=values,
+                   size_hint_y=None, height=_INPUT_HEIGHT,
+                   font_name=_FONT_NAME, font_size=_FS_INPUT)
 
 
 class ChainPlateApp(App):
@@ -79,15 +126,16 @@ class ChainPlateApp(App):
         self.ti = {}   # key -> 数字输入框
         self.sw = {}   # 配件名 -> 开关
 
-        root = BoxLayout(orientation="vertical", padding=8, spacing=6)
+        root = BoxLayout(orientation="vertical", padding=6, spacing=4)
 
         # 标题
-        root.add_widget(Label(text="金属链板成本计算器", bold=True, font_size=21,
-                              size_hint_y=None, height=48))
+        root.add_widget(Label(text="金属链板成本计算器", bold=True,
+                              font_name=_FONT_NAME, font_size=_FS_TITLE,
+                              size_hint_y=None, height=_TITLE_HEIGHT))
 
         # 可滚动表单 + 明细
         scroll = ScrollView(size_hint=(1, 1), do_scroll_x=False)
-        self.content = BoxLayout(orientation="vertical", spacing=8, padding=8,
+        self.content = BoxLayout(orientation="vertical", spacing=6, padding=6,
                                  size_hint_y=None)
         self.content.bind(minimum_height=self.content.setter("height"))
 
@@ -99,12 +147,12 @@ class ChainPlateApp(App):
         root.add_widget(self._build_total_bar())
 
         # 底部按钮行: 计算 + 设置公式
-        btn_row = BoxLayout(size_hint_y=None, height=60, spacing=8)
-        btn_calc = Button(text="计 算", font_size=22,
-                          background_color=(0.20, 0.52, 0.90, 1))
+        btn_row = BoxLayout(size_hint_y=None, height=_BTN_HEIGHT, spacing=8)
+        btn_calc = _btn("计 算", font_size=_FS_BTN_MAIN,
+                        background_color=(0.20, 0.52, 0.90, 1))
         btn_calc.bind(on_press=lambda *a: self.compute_and_show(silent=False))
-        btn_settings = Button(text="设置公式", font_size=17,
-                              background_color=(0.45, 0.45, 0.48, 1))
+        btn_settings = _btn("设置公式",
+                            background_color=(0.45, 0.45, 0.48, 1))
         btn_settings.bind(on_press=lambda *a: self.open_formula_settings())
         btn_row.add_widget(btn_calc)
         btn_row.add_widget(btn_settings)
@@ -148,38 +196,36 @@ class ChainPlateApp(App):
         c = self.content
 
         def row(label_text, widget):
-            box = BoxLayout(orientation="horizontal", spacing=8, size_hint_y=None,
-                            height=max(50, widget.height if hasattr(widget, "height") else 50))
-            lbl = _label(label_text, width=110, size_hint_x=None, halign="left", valign="middle")
-            lbl.bind(size=lambda w, s: setattr(w, "text_size", s))
+            """一行: 左侧标签 + 右侧控件"""
+            box = BoxLayout(orientation="horizontal", spacing=6, size_hint_y=None,
+                            height=max(_ROW_HEIGHT, widget.height if hasattr(widget, "height") else _ROW_HEIGHT))
+            lbl = _label(label_text, size_hint_x=None, width=_LABEL_WIDTH,
+                         halign="left", valign="middle")
+            lbl.bind(size=self._on_label_size)
             box.add_widget(lbl)
             box.add_widget(widget)
             c.add_widget(box)
 
         # ---- 材质 ----
-        self.sp_plate = Spinner(text=MAT_OPTIONS[0], values=MAT_OPTIONS,
-                                size_hint_y=None, height=50, font_size=19)
+        self.sp_plate = _spinner(MAT_OPTIONS[0], MAT_OPTIONS)
         row("板材质", self.sp_plate)
 
-        self.sp_chain = Spinner(text=SAME_OPTION, values=[SAME_OPTION] + MAT_OPTIONS,
-                                size_hint_y=None, height=50, font_size=19)
+        self.sp_chain = _spinner(SAME_OPTION, [SAME_OPTION] + MAT_OPTIONS)
         row("链条材质", self.sp_chain)
 
-        self.sp_pin = Spinner(text=SAME_OPTION, values=[SAME_OPTION] + MAT_OPTIONS,
-                              size_hint_y=None, height=50, font_size=19)
+        self.sp_pin = _spinner(SAME_OPTION, [SAME_OPTION] + MAT_OPTIONS)
         row("穿杆材质", self.sp_pin)
 
         # ---- 节距 ----
-        self.sp_pitch = Spinner(text="50.8", values=PITCHES,
-                                size_hint_y=None, height=50, font_size=19)
-        row("节距 (mm)", self.sp_pitch)
+        self.sp_pitch = _spinner("50.8", PITCHES)
+        row("节距(mm)", self.sp_pitch)
 
         # ---- 基础尺寸 ----
-        self.ti["width"] = _num_input("500", "float", "有效宽度 mm")
+        self.ti["width"] = _num_input("500", "float", "有效宽度mm")
         row("有效宽度", self.ti["width"])
-        self.ti["thickness"] = _num_input("2.0", "float", "板厚 mm")
-        row("板厚 (mm)", self.ti["thickness"])
-        self.ti["pin_d"] = _num_input("8", "float", "穿杆直径 mm")
+        self.ti["thickness"] = _num_input("2.0", "float", "板厚mm")
+        row("板厚(mm)", self.ti["thickness"])
+        self.ti["pin_d"] = _num_input("8", "float", "穿杆直径mm")
         row("穿杆直径", self.ti["pin_d"])
 
         # ---- 选配件 ----
@@ -198,26 +244,35 @@ class ChainPlateApp(App):
         self._acc("punch", "冲孔", [("元/片", "punch_price", "1.0", "float")])
 
         # ---- 明细(跨整行, 可自动增高) ----
-        self.lbl_detail = Label(text="点【计 算】查看明细", halign="left", valign="top",
-                                size_hint_y=None, font_size=15, color=COLOR_NORMAL,
+        self.lbl_detail = Label(text="点【计 算】查看明细",
+                                font_name=_FONT_NAME, font_size=_FS_DETAIL,
+                                halign="left", valign="top",
+                                size_hint_y=None, color=COLOR_NORMAL,
                                 padding=(4, 4))
         self.lbl_detail.bind(width=lambda w, val: setattr(w, "text_size", (val, None)))
         self.lbl_detail.bind(texture_size=lambda w, val: setattr(w, "height", val[1] + 8))
         c.add_widget(self.lbl_detail)
 
+    @staticmethod
+    def _on_label_size(instance, value):
+        """标签尺寸变化时更新 text_size，使文本正确对齐"""
+        instance.text_size = (value[0] - 8, None)  # 留一点内边距
+
     def _acc(self, key, name, params):
         c = self.content
 
         def row_acc(label_text, widget):
-            box = BoxLayout(orientation="horizontal", spacing=8, size_hint_y=None, height=50)
-            lbl = _label(label_text, width=110, size_hint_x=None, halign="left", valign="middle")
-            lbl.bind(size=lambda w, s: setattr(w, "text_size", s))
+            box = BoxLayout(orientation="horizontal", spacing=6,
+                             size_hint_y=None, height=_ROW_HEIGHT)
+            lbl = _label(label_text, size_hint_x=None, width=_LABEL_WIDTH,
+                         halign="left", valign="middle")
+            lbl.bind(size=self._on_label_size)
             box.add_widget(lbl)
             box.add_widget(widget)
             c.add_widget(box)
             return lbl
 
-        sw = Switch(active=False, size_hint_x=None, width=64)
+        sw = Switch(active=False, size_hint_x=None, width=58)
         sw_label = row_acc(name, sw)
         self.sw[key] = sw
 
@@ -238,13 +293,14 @@ class ChainPlateApp(App):
         toggle(sw, sw.active)
 
     def _build_total_bar(self):
-        bar = BoxLayout(size_hint_y=None, height=78, padding=(12, 8))
+        bar = BoxLayout(size_hint_y=None, height=_TOTAL_BAR_HEIGHT, padding=(12, 6))
         with bar.canvas.before:
             Color(*COLOR_TOTAL_BG)
             self._total_rect = Rectangle(pos=bar.pos, size=bar.size)
         bar.bind(pos=lambda *a: setattr(self._total_rect, "pos", bar.pos),
                  size=lambda *a: setattr(self._total_rect, "size", bar.size))
-        self.lbl_total = Label(text="每米总价：—— 元/米", bold=True, font_size=27,
+        self.lbl_total = Label(text="每米总价：—— 元/米", bold=True,
+                               font_name=_FONT_NAME, font_size=_FS_TOTAL,
                                color=COLOR_TOTAL_FG)
         bar.add_widget(self.lbl_total)
         return bar
@@ -341,47 +397,53 @@ class ChainPlateApp(App):
 
         content.add_widget(Label(
             text="修改计算公式（每条下方灰色小字为可用变量）",
-            size_hint_y=None, height=40, font_size=15, color=(0.3, 0.3, 0.3, 1)))
+            font_name=_FONT_NAME, size_hint_y=None, height=40,
+            font_size=14, color=(0.3, 0.3, 0.3, 1)))
 
         scroll = ScrollView(size_hint=(1, 1), do_scroll_x=False)
-        inner = BoxLayout(orientation="vertical", spacing=8, padding=4, size_hint_y=None)
+        inner = BoxLayout(orientation="vertical", spacing=8, padding=4,
+                          size_hint_y=None)
         inner.bind(minimum_height=inner.setter("height"))
 
         self.formula_inputs = {}
         for (name, slot, hint) in FORMULA_FIELDS:
-            lbl = Label(text=name, size_hint_y=None, height=28, font_size=16,
+            lbl = Label(text=name, size_hint_y=None, height=28,
+                        font_name=_FONT_NAME, font_size=15,
                         bold=True, halign="left", valign="middle")
-            lbl.bind(size=lambda w, s: setattr(w, "text_size", s))
+            lbl.bind(size=self._on_label_size)
             inner.add_widget(lbl)
 
             expr = (self.settings.get("formulas") or {}).get(slot) or DEFAULT_FORMULAS[slot]
-            ti = TextInput(text=expr, multiline=True, font_size=15,
+            ti = TextInput(text=expr, multiline=True,
+                           font_name=_FONT_NAME, font_size=14,
                            size_hint_y=None, height=60, padding=(8, 6))
             ti.bind(minimum_height=lambda w, val: setattr(w, "height", max(52, val + 8)))
             self.formula_inputs[slot] = ti
             inner.add_widget(ti)
 
-            h = Label(text=hint, size_hint_y=None, height=32, font_size=12,
+            h = Label(text=hint, size_hint_y=None, height=32,
+                      font_name=_FONT_NAME, font_size=11,
                       color=(0.55, 0.55, 0.55, 1), halign="left", valign="top")
-            h.bind(size=lambda w, s: setattr(w, "text_size", s))
+            h.bind(size=lambda w, s: setattr(w, "text_size", (s[0] - 8, None)))
             inner.add_widget(h)
 
         scroll.add_widget(inner)
         content.add_widget(scroll)
 
         self.lbl_formula_status = Label(text="", size_hint_y=None, height=70,
-                                        font_size=14, color=COLOR_ERR,
+                                        font_name=_FONT_NAME, font_size=13,
+                                        color=COLOR_ERR,
                                         halign="left", valign="top")
         self.lbl_formula_status.bind(size=lambda w, s: setattr(w, "text_size", s))
         content.add_widget(self.lbl_formula_status)
 
         bar = BoxLayout(size_hint_y=None, height=52, spacing=8)
-        btn_default = Button(text="恢复默认公式", font_size=15)
+        btn_default = _btn("恢复默认公式", font_size=14)
         btn_default.bind(on_press=lambda *a: self._restore_default_formulas())
-        btn_save = Button(text="保存", font_size=18,
-                          background_color=(0.20, 0.60, 0.30, 1))
+        btn_save = _btn("保存", font_size=17,
+                        background_color=(0.20, 0.60, 0.30, 1))
         btn_save.bind(on_press=lambda *a: self._save_formulas())
-        btn_close = Button(text="关闭", font_size=15)
+        btn_close = _btn("关闭", font_size=14)
         btn_close.bind(on_press=lambda *a: self._settings_popup.dismiss())
         bar.add_widget(btn_default)
         bar.add_widget(btn_save)
