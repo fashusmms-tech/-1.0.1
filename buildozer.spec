@@ -13,7 +13,7 @@ package.domain = org.chainplate
 source.dir = .
 
 # (list) 要打包的源文件扩展名
-source.include_exts = py,kv,json,txt,atlas
+source.include_exts = py,kv,json,txt,atlas,ttf
 
 # (str) 应用版本
 version = 1.0.0
@@ -37,8 +37,11 @@ android.accept_sdk_license = True
 # (int) 编译所用的 Android SDK API 级别
 android.api = 33
 
-# (str) 固定 NDK 版本（25b 与 python-for-android 稳定版配合良好）
+# (str) 固定 NDK 版本（25b 与 python-for-android 稳定版配合良好，避免默认版本漂移）
 android.ndk = 25b
+
+# (str) 固定 python-for-android 版本。用 2024 稳定版：它内置 Python 3.11，
+# 与 Kivy 2.3.0 兼容。默认的 master 分支已改用 Python 3.14，Kivy 2.3.0 会编译失败。
 p4a.branch = v2024.01.21
 
 # (int) 最低支持的 Android 版本 (API 21 = Android 5.0)
@@ -47,7 +50,7 @@ android.minapi = 21
 # (bool) 是否允许系统备份应用数据
 android.allow_backup = True
 
-# (str) 应用图标（留空使用 Kivy 默认图标）
+# (str) 应用图标（留空使用 Kivy 默认图标；可自行放一张 icon.png 并改成 %(source.dir)s/icon.png）
 # icon.filename = %(source.dir)s/icon.png
 
 # (str) 启动画面背景色（白）
